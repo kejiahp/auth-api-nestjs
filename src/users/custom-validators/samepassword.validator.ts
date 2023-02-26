@@ -8,12 +8,14 @@ import {
 export class SamePasswordValidator implements ValidatorConstraintInterface {
   validate(
     password: any,
-    args?: ValidationArguments,
+    args: ValidationArguments,
   ): boolean | Promise<boolean> {
     //@ts-ignore
-    return password === args.object.passwordConfirmation;
+    if (args.object.password === args.object.passwordConfirmation) {
+      return true;
+    }
   }
   defaultMessage?(args?: ValidationArguments): string {
-    return 'password and confirmation password must be the same.';
+    return 'password and passwordConfirmation password must be the same.';
   }
 }

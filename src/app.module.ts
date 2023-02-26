@@ -1,13 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config/dist';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { config } from './config';
-import { DatabaseConfig } from './database.config';
 import { UsersModule } from './users/users.module';
-import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
+import { dataSourceOptions } from 'db/data-source';
+import { SessionsModule } from './sessions/sessions.module';
 
 @Module({
   imports: [
@@ -15,14 +13,15 @@ import { AuthModule } from './auth/auth.module';
       load: [config],
       isGlobal: true,
     }),
-    TypeOrmModule.forRootAsync({
-      useClass: DatabaseConfig,
-      imports: [ConfigModule],
+    TypeOrmModule.forRoot({
+      ...dataSourceOptions,
+      autoLoadEntities: true,
     }),
     UsersModule,
     AuthModule,
+    SessionsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, AuthService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

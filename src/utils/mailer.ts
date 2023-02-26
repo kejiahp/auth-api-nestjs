@@ -1,42 +1,29 @@
-import { config } from 'dotenv';
+import { createTransport, SendMailOptions } from 'nodemailer';
+import { InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  createTestAccount,
-  createTransport,
-  getTestMessageUrl,
-  SendMailOptions,
-} from 'nodemailer';
-import { Logger } from '@nestjs/common';
-
-config();
 
 const configService = new ConfigService();
 
-const createTestUser = async () => {
-  const creds = await createTestAccount();
-  return creds;
-};
+const sendEmail = async (payload?: SendMailOptions) => {
+  try {
+    const mailTransporter = createTransport({
+      service: 'gmail',
+      auth: {
+        user: configService.get<string>('EMAIL'),
+        pass: configService.get<string>('EMAIL_PASS'),
+      },
+    });
 
-createTestUser();
+    const mailInfo = await mailTransporter.sendMail(payload);
 
-export const smtp = {
-  user: configService.get<string>('MAIL_USER'),
-  pass: configService.get<string>('MAIL_PASSWORD'),
-  host: configService.get<string>('MAIL_HOST'),
-  port: configService.get<number>('MAIL_PORT'),
-  secure: configService.get<boolean>('MAIL_SECURE'),
-};
-const transporter = createTransport({
-  ...smtp,
-  auth: { user: smtp.user, pass: smtp.pass },
-});
-
-const logger = new Logger('MAIL_LOGGER');
-
-const sendEmail = async (payload: SendMailOptions) => {
-  const mailInfo = await transporter.sendMail(payload);
-
-  logger.log(`Preview URL: ${getTestMessageUrl(mailInfo)}`);
+    console.log('Message sent: %s', mailInfo.messageId);
+  } catch (error) {
+    console.log(error);
+    throw new InternalServerErrorException('failed to send mail', {
+      cause: error,
+      description: 'verification mail could not be sent',
+    });
+  }
 };
 
 export default sendEmail;

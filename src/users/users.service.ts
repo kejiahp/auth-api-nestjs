@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -10,10 +10,51 @@ import { User } from './entities/user.entity';
 export class UsersService {
   constructor(@InjectRepository(User) private userRepo: Repository<User>) {}
   async create(createUserDto: CreateUserDto) {
+    const isExist = await this.userRepo.findOneBy({
+      email: createUserDto.email,
+    });
+
+    if (isExist) {
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: 'a user with this email already exists',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     let { passwordConfirmation, password, ...userPayload } = createUserDto;
     password = await hashPassword(password);
     const user = this.userRepo.create({ password, ...userPayload });
     return this.userRepo.save(user);
+  }
+
+  //Not Really Needed
+  // async verifyUser(id: number, verificationCode: string) {
+  //   const user = await this.findOne(id);
+  //   if (!user) {
+  //     return "Couldn't verify user";
+  //   }
+
+  //   if (user.verfied) {
+  //     return 'User is already verified';
+  //   }
+
+  //   if (user.verificationCode === verificationCode) {
+  //     user.verfied = 'true';
+
+  //     this.userRepo.save(user);
+
+  //     return 'User successfully verified';
+  //   }
+
+  //   return "Couldn't verify user";
+  // }
+
+  async findByEmail(email: string) {
+    const user = await this.userRepo.findOneBy({ email });
+    return user;
   }
 
   async findAll() {

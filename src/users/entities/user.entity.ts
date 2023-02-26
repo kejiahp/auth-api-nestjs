@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   PrimaryGeneratedColumn,
+  Index,
 } from 'typeorm';
 
 @Entity()
@@ -12,6 +13,7 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ unique: true })
   email: string;
 
@@ -24,14 +26,14 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ default: () => nanoid() })
-  verificationCode: string;
+  @Column()
+  verificationCode: string = nanoid();
 
   @Column({ nullable: true })
   passwordResetCode: string;
 
-  @Column({ default: 'false' })
-  verfied: string;
+  @Column('boolean')
+  verfied: boolean;
 
   @CreateDateColumn()
   createdDate: Date;
