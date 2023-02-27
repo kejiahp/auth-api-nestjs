@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid';
+import { Sessions } from 'src/sessions/entities/sessions.entity';
 import {
   Entity,
   Column,
@@ -6,6 +7,7 @@ import {
   UpdateDateColumn,
   PrimaryGeneratedColumn,
   Index,
+  OneToMany,
 } from 'typeorm';
 
 @Entity()
@@ -32,7 +34,7 @@ export class User {
   @Column({ nullable: true })
   passwordResetCode: string;
 
-  @Column('boolean')
+  @Column({ type: 'boolean', default: false })
   verfied: boolean;
 
   @CreateDateColumn()
@@ -40,4 +42,7 @@ export class User {
 
   @UpdateDateColumn()
   updatedDate: Date;
+
+  @OneToMany(() => Sessions, (sessions) => sessions.user)
+  sessions: Sessions[];
 }

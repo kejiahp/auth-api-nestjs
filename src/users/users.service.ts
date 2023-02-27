@@ -30,28 +30,6 @@ export class UsersService {
     return this.userRepo.save(user);
   }
 
-  //Not Really Needed
-  // async verifyUser(id: number, verificationCode: string) {
-  //   const user = await this.findOne(id);
-  //   if (!user) {
-  //     return "Couldn't verify user";
-  //   }
-
-  //   if (user.verfied) {
-  //     return 'User is already verified';
-  //   }
-
-  //   if (user.verificationCode === verificationCode) {
-  //     user.verfied = 'true';
-
-  //     this.userRepo.save(user);
-
-  //     return 'User successfully verified';
-  //   }
-
-  //   return "Couldn't verify user";
-  // }
-
   async findByEmail(email: string) {
     const user = await this.userRepo.findOneBy({ email });
     return user;

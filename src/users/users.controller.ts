@@ -46,8 +46,6 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @Param('verificationCode') verificationCode: string,
   ) {
-    // return this.usersService.verifyUser(id, verificationCode);
-
     const user = await this.usersService.findOne(id);
     if (!user) {
       return "Couldn't verify user";

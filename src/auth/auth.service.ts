@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UnauthorizedException } from '@nestjs/common/exceptions';
 import { JwtService } from '@nestjs/jwt';
+import { SessionsService } from 'src/sessions/sessions.service';
 import { verifyPassword } from 'src/users/encryption/password.encrypt';
 import { UsersService } from 'src/users/users.service';
 import constants from './constants';
@@ -11,6 +12,7 @@ export class AuthService {
   constructor(
     private readonly userService: UsersService,
     private jwtService: JwtService,
+    private sessionsService: SessionsService,
   ) {}
 
   generateAccessToken(payload: {
@@ -18,15 +20,22 @@ export class AuthService {
     email: string;
     fullname: string;
   }) {
-    const refreshToken = this.jwtService.sign(payload, {
+    const accessToken = this.jwtService.sign(payload, {
       secret: constants.access_secret,
       expiresIn: 60 * 15,
     });
 
-    return refreshToken;
+    return accessToken;
   }
 
-  genereteRefreshToken() {}
+  genereteRefreshToken(payload: { id: number; user: number }) {
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: constants.refresh_secret,
+      expiresIn: 60 * 30,
+    });
+
+    return refreshToken;
+  }
 
   async validateUser(userAuthDto: UserAuthDto) {
     const user = await this.userService.findByEmail(userAuthDto.email);
@@ -52,15 +61,22 @@ export class AuthService {
 
   async login(userAuthDto: UserAuthDto) {
     const user = await this.validateUser(userAuthDto);
+    const session = await this.sessionsService.createSession(user.id);
 
-    const payload = {
+    const access_payload = {
       id: user.id,
       email: user.email,
       fullname: `${user.lastname} ${user.firstname}`,
     };
 
-    const access_token = this.generateAccessToken(payload);
+    const refresh_payload = {
+      id: session.id,
+      user: session.user.id,
+    };
 
-    return { access_token };
+    const access_token = this.generateAccessToken(access_payload);
+    const refresh_token = this.genereteRefreshToken(refresh_payload);
+
+    return { access_token, refresh_token };
   }
 }
